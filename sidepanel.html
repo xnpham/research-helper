@@ -1,0 +1,344 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Research Notes</title>
+    <style>
+      :root {
+        --bg: #0f172a;           /* slate-900 */
+        --bg-elevated: #020617;  /* slate-950 */
+        --accent: #38bdf8;       /* sky-400 */
+        --accent-soft: rgba(56, 189, 248, 0.15);
+        --border-subtle: rgba(148, 163, 184, 0.25); /* slate-400 */
+        --text-primary: #e5e7eb; /* gray-200 */
+        --text-secondary: #9ca3af; /* gray-400 */
+        --text-muted: #6b7280; /* gray-500 */
+        --danger: #f97373;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+      }
+
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: radial-gradient(circle at top left, #1e293b, #020617 55%);
+        color: var(--text-primary);
+        padding: 8px;
+      }
+
+      .panel {
+        border-radius: 16px;
+        padding: 10px 10px 12px;
+        background: linear-gradient(
+          135deg,
+          rgba(148, 163, 184, 0.12),
+          rgba(15, 23, 42, 0.9)
+        );
+        box-shadow:
+          0 10px 25px rgba(15, 23, 42, 0.9),
+          0 0 0 1px rgba(148, 163, 184, 0.2);
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 16px);
+      }
+
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+        margin-bottom: 6px;
+        gap: 8px;
+      }
+
+      .title-group {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      h3 {
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .pill {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        padding: 2px 6px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        border: 1px solid rgba(56, 189, 248, 0.4);
+      }
+
+      #sessionInfo {
+        font-size: 11px;
+        color: var(--text-secondary);
+        max-width: 220px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .status-badge {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+      }
+
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+      }
+
+      .status-dot.offline {
+        background: #f97373;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+      }
+
+      .editor-shell {
+        margin-top: 8px;
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        border-radius: 12px;
+        background: radial-gradient(circle at top, #020617, #020617);
+        border: 1px solid var(--border-subtle);
+      }
+
+      .editor-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 8px;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.9);
+        background: radial-gradient(circle at top left, #0f172a, #020617);
+        border-radius: 11px 11px 0 0;
+      }
+
+      .toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: var(--text-secondary);
+      }
+
+      .toolbar-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        opacity: 0.65;
+      }
+
+      .dot-red {
+        background: #f87171;
+      }
+      .dot-yellow {
+        background: #fbbf24;
+      }
+      .dot-green {
+        background: #4ade80;
+      }
+
+      .toolbar-right {
+        font-size: 11px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .badge-soft {
+        padding: 2px 6px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: rgba(15, 23, 42, 0.9);
+      }
+
+      .editor-scroll {
+        flex: 1;
+        padding: 8px;
+      }
+
+      textarea#notes {
+        width: 100%;
+        height: 100%;
+        border: none;
+        outline: none;
+        resize: none;
+        background: transparent;
+        color: var(--text-primary);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      textarea#notes::placeholder {
+        color: rgba(148, 163, 184, 0.65);
+      }
+
+      .panel-footer {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 6px;
+      }
+
+      button {
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: radial-gradient(circle at top right, #0f172a, #020617);
+        color: var(--text-primary);
+        font-size: 11px;
+        padding: 6px 12px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.12s ease-out;
+      }
+
+      button:hover {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+        transform: translateY(-0.5px);
+      }
+
+      button:active {
+        transform: translateY(0.5px) scale(0.99);
+        box-shadow: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(
+          135deg,
+          rgba(56, 189, 248, 0.18),
+          rgba(56, 189, 248, 0.05)
+        );
+        border-color: rgba(56, 189, 248, 0.7);
+      }
+
+      .btn-icon {
+        font-size: 12px;
+        opacity: 0.85;
+      }
+
+      .status-text {
+        font-size: 11px;
+        color: var(--text-muted);
+        text-align: right;
+      }
+
+      .status-text strong {
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      /* Scrollbar styling for editor */
+      .editor-scroll::-webkit-scrollbar {
+        width: 7px;
+      }
+      .editor-scroll::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.9);
+      }
+      .editor-scroll::-webkit-scrollbar-thumb {
+        background: rgba(51, 65, 85, 0.9);
+        border-radius: 999px;
+      }
+      .editor-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(71, 85, 105, 0.9);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="title-group">
+          <h3>
+            Research Notes
+            <span class="pill">Markdown</span>
+          </h3>
+          <div id="sessionInfo">Loading session…</div>
+        </div>
+        <div class="status-badge" id="sessionStatusBadge">
+          <span class="status-dot"></span>
+          <span id="sessionStatusText">Active session</span>
+        </div>
+      </div>
+
+      <div class="editor-shell">
+        <div class="editor-toolbar">
+          <div class="toolbar-left">
+            <span class="toolbar-dot dot-red"></span>
+            <span class="toolbar-dot dot-yellow"></span>
+            <span class="toolbar-dot dot-green"></span>
+            <span>notes.md</span>
+          </div>
+          <div class="toolbar-right">
+            <span class="badge-soft" id="wordsCount">0 words</span>
+            <span class="badge-soft" id="autosaveStatus">Idle</span>
+          </div>
+        </div>
+        <div class="editor-scroll">
+          <textarea
+            id="notes"
+            placeholder="Jot down key ideas, papers, URLs, and observations here&#10;&#10;Tip: Use markdown like **bold**, _italic_, - bullet lists, and [links](https://example.com)."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="panel-footer">
+        <div class="button-group">
+          <button id="copyBtn">
+            <span class="btn-icon">📋</span>
+            <span>Copy</span>
+          </button>
+          <button id="exportBtn" class="btn-primary">
+            <span class="btn-icon">⬇️</span>
+            <span>Export .md</span>
+          </button>
+        </div>
+        <div class="status-text" id="status">
+          Ready.
+        </div>
+      </div>
+    </div>
+
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

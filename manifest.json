@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Research Assistant",
+  "version": "0.1.0",
+  "description": "Track research sessions and take markdown notes in a side panel.",
+  "permissions": [
+    "tabs",
+    "webNavigation",
+    "storage",
+    "downloads",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Research session"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  }
+}
