@@ -1,11 +1,14 @@
 // popup.js
 
+// popup.js
+
 const topicInput = document.getElementById('topicInput');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const statusEl = document.getElementById('status');
 const sessionsListEl = document.getElementById('sessionsList');
 const openSidePanelBtn = document.getElementById('openSidePanelBtn');
+const deleteAllBtn = document.getElementById('deleteAllBtn');
 
 function setStatus(text) {
   statusEl.textContent = text;
@@ -39,7 +42,9 @@ async function refreshState() {
       stopBtn.disabled = true; // mặc định disable, click Start sẽ enable
       stopBtn.disabled = false;
       topicInput.value = session.topicName || '';
-      setStatus(`Session "${session.topicName}" is running (pages: ${session.pages.length})`);
+      const loadingCount = session.pages.filter(p => p.status === 'loading').length;
+      const statusText = `Session "${session.topicName}" is running (pages: ${session.pages.length})`;
+      setStatus(loadingCount > 0 ? `${statusText} - ${loadingCount} generating...` : statusText);
     } else {
       updateBadge(false);
       startBtn.disabled = false;
@@ -52,8 +57,6 @@ async function refreshState() {
   if (allRes.ok) {
     renderSessions(allRes.sessions);
   }
-
-  
 }
 
 function renderSessions(sessions) {
@@ -69,16 +72,30 @@ function renderSessions(sessions) {
 
     const title = document.createElement('div');
     title.className = 'session-title';
-    title.textContent = s.topicName || 'Untitled';
+    let titleText = s.topicName || 'Untitled';
+
+    // Check if any page in this session is loading
+    const loadingCount = s.pages.filter(p => p.status === 'loading').length;
+    if (loadingCount > 0) {
+      titleText += ` (Generating ${loadingCount} titles...) ⏳`;
+    }
+
+    title.textContent = titleText;
 
     const meta = document.createElement('div');
     const start = new Date(s.startedAt).toLocaleString();
     const end = s.endedAt ? new Date(s.endedAt).toLocaleString() : 'N/A';
     meta.textContent = `Pages: ${s.pages.length} | ${start} → ${end}`;
 
+    const actionsDiv = document.createElement('div');
+    actionsDiv.style.display = 'flex';
+    actionsDiv.style.gap = '6px';
+    actionsDiv.style.marginTop = '4px';
+
     const exportBtn = document.createElement('button');
     exportBtn.textContent = 'Export Markdown';
-    exportBtn.style.marginTop = '4px';
+    exportBtn.className = 'session-export-btn';
+    exportBtn.style.flex = '1';
     exportBtn.onclick = async () => {
       const res = await chrome.runtime.sendMessage({
         type: 'getSessionMarkdown',
@@ -102,18 +119,30 @@ function renderSessions(sessions) {
           filename: `research_session_${s.topicName || 'untitled'}_${s.id}.md`,
           saveAs: true
         });
-      } catch (e) {
-        console.error('downloads.download error', e);
-        alert('Download failed: ' + e);
       } finally {
         setTimeout(() => URL.revokeObjectURL(url), 10_000);
       }
     };
 
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.className = 'session-export-btn';
+    deleteBtn.style.width = '30px';
+    deleteBtn.style.justifyContent = 'center';
+    deleteBtn.title = 'Delete Session';
+    deleteBtn.onclick = async () => {
+      if (confirm(`Delete session "${s.topicName}"?`)) {
+        await chrome.runtime.sendMessage({ type: 'deleteSession', sessionId: s.id });
+        refreshState();
+      }
+    };
+
+    actionsDiv.appendChild(exportBtn);
+    actionsDiv.appendChild(deleteBtn);
 
     div.appendChild(title);
     div.appendChild(meta);
-    div.appendChild(exportBtn);
+    div.appendChild(actionsDiv);
     sessionsListEl.appendChild(div);
   }
 }
@@ -142,13 +171,30 @@ stopBtn.addEventListener('click', async () => {
   }
 });
 
-openSidePanelBtn.addEventListener('click', async () => {
-  try {
-    await chrome.sidePanel.open({ windowId: (await chrome.windows.getCurrent()).id });
-  } catch (e) {
-    console.error(e);
-    setStatus('Could not open side panel');
-  }
+if (deleteAllBtn) {
+  deleteAllBtn.addEventListener('click', async () => {
+    if (confirm('Are you sure you want to delete ALL sessions? This cannot be undone.')) {
+      await chrome.runtime.sendMessage({ type: 'deleteAllSessions' });
+      refreshState();
+    }
+  });
+}
+
+openSidePanelBtn.addEventListener('click', () => {
+  // Chrome sidePanel API
+  // Note: open() requires user gesture, which click provides.
+  // But sidePanel.open might only be available in newer Chrome versions or specific context.
+  // Alternatively, we can just instruct user.
+  // For now let's try to open it if possible, or just show a message.
+
+  // Actually, chrome.sidePanel.open needs a windowId.
+  chrome.windows.getCurrent({ populate: false }, (window) => {
+    if (chrome.sidePanel && chrome.sidePanel.open) {
+      chrome.sidePanel.open({ windowId: window.id });
+    } else {
+      alert('Please click the Side Panel icon in Chrome toolbar to open notes.');
+    }
+  });
 });
 
 // init

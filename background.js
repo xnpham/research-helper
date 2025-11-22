@@ -1,4 +1,5 @@
 // background.js
+import { GEMINI_API_KEY } from './env.js';
 
 // Key để lưu trong storage
 const STORAGE_KEYS = {
@@ -71,10 +72,38 @@ async function stopSession() {
   return finished;
 }
 
+async function deleteSession(sessionId) {
+  const data = await loadStorage([STORAGE_KEYS.SESSIONS, STORAGE_KEYS.NOTES]);
+  let sessions = data[STORAGE_KEYS.SESSIONS] || [];
+  let notes = data[STORAGE_KEYS.NOTES] || {};
+
+  sessions = sessions.filter(s => s.id !== sessionId);
+  delete notes[sessionId];
+
+  await saveStorage({
+    [STORAGE_KEYS.SESSIONS]: sessions,
+    [STORAGE_KEYS.NOTES]: notes
+  });
+}
+
+async function deleteAllSessions() {
+  await saveStorage({
+    [STORAGE_KEYS.SESSIONS]: [],
+    [STORAGE_KEYS.NOTES]: {}
+  });
+}
+
 // Log mỗi lần điều hướng top-level
 chrome.webNavigation.onCommitted.addListener(async (details) => {
   if (!currentSession) return;
   if (details.frameId !== 0) return; // chỉ trang chính
+
+  // Duplicate check: if same URL as last page, ignore
+  const lastPage = currentSession.pages[currentSession.pages.length - 1];
+  if (lastPage && lastPage.url === details.url) {
+    console.log('Ignoring duplicate URL:', details.url);
+    return;
+  }
 
   pageOrder += 1;
 
@@ -85,7 +114,8 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
     openedAt: Date.now(),
     tabId: details.tabId,
     windowId: details.windowId,
-    openerTabId: details.openerTabId
+    openerTabId: details.openerTabId,
+    status: 'loading' // 'loading' | 'complete'
   };
 
   currentSession.pages.push(pageEntry);
@@ -93,11 +123,70 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
   await saveStorage({ [STORAGE_KEYS.CURRENT_SESSION]: currentSession });
 });
 
+// Update title when page finishes loading (using Gemini) OR when title changes
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (!currentSession) return;
+
+  // Find the most recent entry with this URL
+  const pageIndex = currentSession.pages.findLastIndex(p => p.url === tab.url);
+  if (pageIndex === -1) return;
+
+  const page = currentSession.pages[pageIndex];
+
+  // Helper to update title in storage
+  const updateTitle = async (newTitle, isFinal = false) => {
+    let changed = false;
+    if (newTitle && newTitle !== page.title) {
+      currentSession.pages[pageIndex].title = newTitle;
+      changed = true;
+    }
+    if (isFinal) {
+      currentSession.pages[pageIndex].status = 'complete';
+      changed = true;
+    }
+
+    if (changed) {
+      await saveStorage({ [STORAGE_KEYS.CURRENT_SESSION]: currentSession });
+      console.log(`Title updated to: ${newTitle} (Final: ${isFinal})`);
+    }
+  };
+
+  // 1. Progressive Update: If browser reports a title change (even if loading)
+  if (changeInfo.title) {
+    console.log('Browser reported title change:', changeInfo.title);
+    await updateTitle(changeInfo.title, false);
+  }
+
+  // 2. AI Generation: Only when loading is complete
+  if (changeInfo.status === 'complete') {
+    console.log('Page load complete. Generating AI title for:', tab.url);
+
+    try {
+      const aiTitle = await generateTitleForTab(tabId);
+      if (aiTitle) {
+        await updateTitle(aiTitle, true);
+      } else {
+        console.log('AI returned null, falling back to tab title');
+        // Ensure we have the latest tab title if AI fails
+        await updateTitle(tab.title, true);
+      }
+    } catch (e) {
+      console.error('AI Title generation failed (unexpected):', e);
+      // Fallback to tab title if AI fails
+      await updateTitle(tab.title, true);
+    }
+  }
+});
+
 // --------- Export Markdown ----------
 
 function formatTimestamp(ts) {
   const d = new Date(ts);
-  return d.toLocaleString(); // có thể custom theo ý
+  return d.toLocaleTimeString(); // Just time for the table
+}
+
+function formatDate(ts) {
+  return new Date(ts).toLocaleString();
 }
 
 function sessionToMarkdown(session, notesForSession = '') {
@@ -105,9 +194,13 @@ function sessionToMarkdown(session, notesForSession = '') {
 
   md += `# Research session: ${session.topicName}\n\n`;
   md += `- **Session ID**: ${session.id}\n`;
-  md += `- **Started**: ${formatTimestamp(session.startedAt)}\n`;
+  md += `- **Started**: ${formatDate(session.startedAt)}\n`;
   if (session.endedAt) {
-    md += `- **Ended**: ${formatTimestamp(session.endedAt)}\n`;
+    md += `- **Ended**: ${formatDate(session.endedAt)}\n`;
+    const durationMs = session.endedAt - session.startedAt;
+    const durationMin = Math.floor(durationMs / 60000);
+    const durationSec = Math.floor((durationMs % 60000) / 1000);
+    md += `- **Duration**: ${durationMin}m ${durationSec}s\n`;
   }
   md += `- **Total pages**: ${session.pages.length}\n\n`;
 
@@ -117,8 +210,16 @@ function sessionToMarkdown(session, notesForSession = '') {
   }
 
   md += `## Pages\n\n`;
+  // Table Header - REMOVED SUMMARY COLUMN
+  md += `| Order | Time | Title | URL |\n`;
+  md += `| :--- | :--- | :--- | :--- |\n`;
+
   for (const page of session.pages) {
-    md += `${page.order}. [${page.title || page.url}](${page.url}) — ${formatTimestamp(page.openedAt)}\n`;
+    const title = (page.title || 'No Title').replace(/\|/g, '\\|'); // Escape pipes
+    const url = page.url;
+    const time = formatTimestamp(page.openedAt);
+
+    md += `| ${page.order} | ${time} | ${title} | ${url} |\n`;
   }
 
   return md;
@@ -230,6 +331,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           sendResponse({ ok: true, content: notes });
           break;
         }
+        case 'deleteSession':
+          await deleteSession(message.sessionId);
+          sendResponse({ ok: true });
+          break;
+        case 'deleteAllSessions':
+          await deleteAllSessions();
+          sendResponse({ ok: true });
+          break;
         default:
           sendResponse({ ok: false, error: 'Unknown message type' });
       }
@@ -242,3 +351,116 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // Return true để dùng async sendResponse
   return true;
 });
+
+// --------- Gemini API Integration (Titles Only) ----------
+
+async function getPageContent(tabId) {
+  const tab = await chrome.tabs.get(tabId);
+
+  if (tab.url.toLowerCase().endsWith('.pdf')) {
+    return {
+      isPdf: true,
+      url: tab.url,
+      title: tab.title
+    };
+  }
+
+  try {
+    const result = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () => {
+        return document.body.innerText.substring(0, 3000); // Limit to 3000 chars for title gen
+      }
+    });
+
+    return {
+      content: result[0].result,
+      url: tab.url,
+      title: tab.title
+    };
+  } catch (e) {
+    console.warn('Script injection failed (likely restricted page or PDF):', e);
+    return {
+      content: '',
+      url: tab.url,
+      title: tab.title,
+      error: e
+    };
+  }
+}
+
+async function callGeminiForTitle(text) {
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_API_KEY_HERE') {
+    throw new Error('Please set your Gemini API Key in env.js');
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+  const prompt = `
+    Analyze the following text from a webpage and provide ONLY a concise, descriptive title (max 10 words).
+    Do not include "Title:" prefix. Just the title text.
+
+    Text:
+    ${text}
+  `;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: prompt }]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      console.error('Gemini API Error Details:', JSON.stringify(err, null, 2));
+      throw new Error(err.error?.message || 'Gemini API request failed');
+    }
+
+    const data = await response.json();
+    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!generatedText) {
+      console.warn('Gemini response contained no text:', JSON.stringify(data, null, 2));
+      throw new Error('No content generated');
+    }
+
+    return generatedText.trim();
+  } catch (e) {
+    console.error('Call Gemini failed:', e);
+    throw e;
+  }
+
+}
+
+async function generateTitleForTab(tabId) {
+  try {
+    const pageData = await getPageContent(tabId);
+
+    if (pageData.isPdf) {
+      // Extract filename
+      const filename = pageData.url.split('/').pop().split('?')[0] || 'PDF Document';
+      try {
+        return decodeURIComponent(filename);
+      } catch {
+        return filename;
+      }
+    }
+
+    if (!pageData.content || pageData.content.trim().length === 0) {
+      return null;
+    }
+
+    const title = await callGeminiForTitle(pageData.content);
+    return title;
+  } catch (error) {
+    console.error('Gemini Title Error:', error);
+    return null;
+  }
+}

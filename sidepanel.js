@@ -1,10 +1,12 @@
 // sidepanel.js
 
 const notesEl = document.getElementById('notes');
+const previewEl = document.getElementById('preview');
 const statusEl = document.getElementById('status');
 const sessionInfoEl = document.getElementById('sessionInfo');
 const copyBtn = document.getElementById('copyBtn');
 const exportBtn = document.getElementById('exportBtn');
+const previewBtn = document.getElementById('previewBtn');
 const wordsCountEl = document.getElementById('wordsCount');
 const autosaveStatusEl = document.getElementById('autosaveStatus');
 const sessionStatusBadge = document.getElementById('sessionStatusBadge');
@@ -12,6 +14,7 @@ const sessionStatusText = document.getElementById('sessionStatusText');
 
 let currentSession = null;
 let saveTimeout = null;
+let isPreviewMode = false;
 
 function setStatus(msg) {
   statusEl.textContent = msg;
@@ -98,6 +101,33 @@ function scheduleSave() {
   }, 600);
 }
 
+// Simple Markdown Renderer
+function renderMarkdown(text) {
+  if (!text) return '';
+
+  let html = text
+    // Escape HTML
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    // Bold **text**
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    // Italic *text* or _text_
+    .replace(/(\*|_)(.*?)\1/g, '<em>$2</em>')
+    // Links [text](url)
+    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" style="color: var(--accent);">$1</a>')
+    // Headers ###
+    .replace(/^### (.*$)/gm, '<h3 style="margin: 8px 0 4px; font-size: 1.1em;">$1</h3>')
+    .replace(/^## (.*$)/gm, '<h2 style="margin: 10px 0 6px; font-size: 1.2em;">$1</h2>')
+    .replace(/^# (.*$)/gm, '<h1 style="margin: 12px 0 8px; font-size: 1.4em;">$1</h1>')
+    // Lists - item
+    .replace(/^\s*-\s+(.*$)/gm, '• $1<br>')
+    // Newlines to <br> (except after headers)
+    .replace(/\n/g, '<br>');
+
+  return html;
+}
+
 notesEl.addEventListener('input', scheduleSave);
 
 copyBtn.addEventListener('click', async () => {
@@ -127,6 +157,26 @@ exportBtn.addEventListener('click', async () => {
     setStatus('Download failed');
   } finally {
     setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  }
+});
+
+previewBtn.addEventListener('click', () => {
+  isPreviewMode = !isPreviewMode;
+
+  if (isPreviewMode) {
+    // Switch to Preview
+    previewEl.innerHTML = renderMarkdown(notesEl.value);
+    notesEl.style.display = 'none';
+    previewEl.style.display = 'block';
+    previewBtn.textContent = '✏️ Edit';
+    previewBtn.style.color = 'var(--accent)';
+  } else {
+    // Switch to Edit
+    notesEl.style.display = 'block';
+    previewEl.style.display = 'none';
+    previewBtn.textContent = '👁️ Preview';
+    previewBtn.style.color = 'var(--text-secondary)';
+    notesEl.focus();
   }
 });
 

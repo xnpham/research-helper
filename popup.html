@@ -1,382 +1,393 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Research Session</title>
-    <style>
-      :root {
-        --bg: #0f172a; /* slate-900 */
-        --bg-elevated: #020617; /* slate-950 */
-        --accent: #38bdf8; /* sky-400 */
-        --accent-soft: rgba(56, 189, 248, 0.15);
-        --border-subtle: rgba(148, 163, 184, 0.25); /* slate-400 */
-        --text-primary: #e5e7eb; /* gray-200 */
-        --text-secondary: #9ca3af; /* gray-400 */
-        --text-muted: #6b7280; /* gray-500 */
-      }
 
-      * {
-        box-sizing: border-box;
-      }
+<head>
+  <meta charset="utf-8">
+  <title>Research Session</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      /* slate-900 */
+      --bg-elevated: #020617;
+      /* slate-950 */
+      --accent: #38bdf8;
+      /* sky-400 */
+      --accent-soft: rgba(56, 189, 248, 0.15);
+      --border-subtle: rgba(148, 163, 184, 0.25);
+      /* slate-400 */
+      --text-primary: #e5e7eb;
+      /* gray-200 */
+      --text-secondary: #9ca3af;
+      /* gray-400 */
+      --text-muted: #6b7280;
+      /* gray-500 */
+    }
 
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-      }
+    * {
+      box-sizing: border-box;
+    }
 
-      body {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-          sans-serif;
-        background: radial-gradient(circle at top left, #1e293b, #020617 55%);
-        color: var(--text-primary);
-        padding: 8px;
-        min-width: 280px;
-        max-width: 360px;
-      }
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
 
-      .panel {
-        border-radius: 16px;
-        padding: 10px 10px 12px;
-        background: linear-gradient(
-          135deg,
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top left, #1e293b, #020617 55%);
+      color: var(--text-primary);
+      padding: 8px;
+      min-width: 280px;
+      max-width: 360px;
+    }
+
+    .panel {
+      border-radius: 16px;
+      padding: 10px 10px 12px;
+      background: linear-gradient(135deg,
           rgba(148, 163, 184, 0.12),
-          rgba(15, 23, 42, 0.9)
-        );
-        box-shadow:
-          0 10px 25px rgba(15, 23, 42, 0.9),
-          0 0 0 1px rgba(148, 163, 184, 0.2);
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
+          rgba(15, 23, 42, 0.9));
+      box-shadow:
+        0 10px 25px rgba(15, 23, 42, 0.9),
+        0 0 0 1px rgba(148, 163, 184, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
-      .panel-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        padding-bottom: 6px;
-        border-bottom: 1px solid rgba(148, 163, 184, 0.35);
-      }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+    }
 
-      .title-group {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
+    .title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
 
-      h3 {
-        font-size: 14px;
-        font-weight: 600;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-      .pill {
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        padding: 2px 6px;
-        border-radius: 999px;
-        background: var(--accent-soft);
-        color: var(--accent);
-        border: 1px solid rgba(56, 189, 248, 0.4);
-      }
+    .pill {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
 
-      .subtitle {
-        font-size: 11px;
-        color: var(--text-secondary);
-      }
+    .subtitle {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
 
-      .status-badge {
-        font-size: 11px;
-        padding: 2px 8px;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.5);
-        color: var(--text-secondary);
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        white-space: nowrap;
-      }
+    .status-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
 
-      .status-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: #22c55e;
-        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
-      }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+    }
 
-      .status-dot.offline {
-        background: #f97373;
-        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
-      }
+    .status-dot.offline {
+      background: #f97373;
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+    }
 
-      .field-group {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        margin-top: 4px;
-      }
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+    }
 
-      label {
-        font-size: 11px;
-        color: var(--text-secondary);
-      }
+    label {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
 
-      input {
-        width: 100%;
-        padding: 6px 8px;
-        border-radius: 999px;
-        border: 1px solid var(--border-subtle);
-        background: rgba(15, 23, 42, 0.9);
-        color: var(--text-primary);
-        font-size: 12px;
-        outline: none;
-      }
+    input {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-primary);
+      font-size: 12px;
+      outline: none;
+    }
 
-      input::placeholder {
-        color: rgba(148, 163, 184, 0.7);
-      }
+    input::placeholder {
+      color: rgba(148, 163, 184, 0.7);
+    }
 
-      input:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
-      }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+    }
 
-      .button-row {
-        display: flex;
-        gap: 6px;
-        margin-top: 4px;
-      }
+    .button-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
 
-      button {
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.4);
-        background: radial-gradient(circle at top right, #0f172a, #020617);
-        color: var(--text-primary);
-        font-size: 11px;
-        padding: 6px 10px;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        transition: all 0.12s ease-out;
-        flex: 1;
-        justify-content: center;
-      }
+    button {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: radial-gradient(circle at top right, #0f172a, #020617);
+      color: var(--text-primary);
+      font-size: 11px;
+      padding: 6px 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.12s ease-out;
+      flex: 1;
+      justify-content: center;
+    }
 
-      button:hover:not(:disabled) {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
-        transform: translateY(-0.5px);
-      }
+    button:hover:not(:disabled) {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+      transform: translateY(-0.5px);
+    }
 
-      button:active:not(:disabled) {
-        transform: translateY(0.5px) scale(0.99);
-        box-shadow: none;
-      }
+    button:active:not(:disabled) {
+      transform: translateY(0.5px) scale(0.99);
+      box-shadow: none;
+    }
 
-      button:disabled {
-        opacity: 0.4;
-        cursor: default;
-      }
+    button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
 
-      .btn-primary {
-        background: linear-gradient(
-          135deg,
+    .btn-primary {
+      background: linear-gradient(135deg,
           rgba(56, 189, 248, 0.18),
-          rgba(56, 189, 248, 0.05)
-        );
-        border-color: rgba(56, 189, 248, 0.7);
-      }
+          rgba(56, 189, 248, 0.05));
+      border-color: rgba(56, 189, 248, 0.7);
+    }
 
-      .btn-ghost {
-        background: rgba(15, 23, 42, 0.7);
-      }
+    .btn-ghost {
+      background: rgba(15, 23, 42, 0.7);
+    }
 
-      .btn-icon {
-        font-size: 12px;
-        opacity: 0.9;
-      }
+    .btn-icon {
+      font-size: 12px;
+      opacity: 0.9;
+    }
 
-      .section-title {
-        margin-top: 8px;
-        font-size: 11px;
-        font-weight: 500;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-      }
+    .section-title {
+      margin-top: 8px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
 
-      .sessions-list-wrapper {
-        margin-top: 4px;
-        max-height: 180px;
-        overflow-y: auto;
-        border-radius: 10px;
-        border: 1px solid rgba(51, 65, 85, 0.9);
-        background: radial-gradient(circle at top, #020617, #020617);
-      }
+    .sessions-list-wrapper {
+      margin-top: 4px;
+      max-height: 180px;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: radial-gradient(circle at top, #020617, #020617);
+    }
 
-      #sessionsList {
-        font-size: 11px;
-        padding: 4px 6px;
-      }
+    #sessionsList {
+      font-size: 11px;
+      padding: 4px 6px;
+    }
 
-      .session-item {
-        border-bottom: 1px solid rgba(30, 41, 59, 0.9);
-        padding: 4px 2px;
-      }
+    .session-item {
+      border-bottom: 1px solid rgba(30, 41, 59, 0.9);
+      padding: 4px 2px;
+    }
 
-      .session-item:last-child {
-        border-bottom: none;
-      }
+    .session-item:last-child {
+      border-bottom: none;
+    }
 
-      .session-title {
-        font-weight: 500;
-        font-size: 11px;
-        color: var(--text-primary);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
+    .session-title {
+      font-weight: 500;
+      font-size: 11px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-      .session-meta {
-        font-size: 10px;
-        color: var(--text-muted);
-        margin-top: 1px;
-      }
+    .session-meta {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
 
-      .session-chip {
-        font-size: 9px;
-        padding: 1px 6px;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.5);
-        color: var(--text-secondary);
-      }
+    .session-chip {
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--text-secondary);
+    }
 
-      .session-export-btn {
-        margin-top: 3px;
-        font-size: 10px;
-        padding: 3px 8px;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.4);
-        background: rgba(15, 23, 42, 0.8);
-        color: var(--text-primary);
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        transition: all 0.12s ease-out;
-      }
+    .session-export-btn {
+      margin-top: 3px;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-primary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.12s ease-out;
+    }
 
-      .session-export-btn:hover {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
-        transform: translateY(-0.5px);
-      }
+    .session-export-btn:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+      transform: translateY(-0.5px);
+    }
 
-      .session-export-btn:active {
-        transform: translateY(0.5px) scale(0.99);
-        box-shadow: none;
-      }
+    .session-export-btn:active {
+      transform: translateY(0.5px) scale(0.99);
+      box-shadow: none;
+    }
 
-      .panel-footer {
-        margin-top: 6px;
-        font-size: 10px;
-        color: var(--text-muted);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
-      }
+    .panel-footer {
+      margin-top: 6px;
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
 
-      #status {
-        flex: 1;
-      }
+    #status {
+      flex: 1;
+    }
 
-      .hint {
-        text-align: right;
-        white-space: nowrap;
-      }
+    .hint {
+      text-align: right;
+      white-space: nowrap;
+    }
 
-      /* Scrollbar styling */
-      .sessions-list-wrapper::-webkit-scrollbar {
-        width: 7px;
-      }
-      .sessions-list-wrapper::-webkit-scrollbar-track {
-        background: rgba(15, 23, 42, 0.9);
-      }
-      .sessions-list-wrapper::-webkit-scrollbar-thumb {
-        background: rgba(51, 65, 85, 0.9);
-        border-radius: 999px;
-      }
-      .sessions-list-wrapper::-webkit-scrollbar-thumb:hover {
-        background: rgba(71, 85, 105, 0.9);
-      }
-    </style>
-  </head>
-  <body>
-    <div class="panel">
-      <div class="panel-header">
-        <div class="title-group">
-          <h3>
-            Research Session
-            <span class="pill">Tracker</span>
-          </h3>
-          <div class="subtitle" id="subtitle">
-            Start a topic to track all pages you open.
-          </div>
-        </div>
-        <div class="status-badge" id="popupStatusBadge">
-          <span class="status-dot" id="popupStatusDot"></span>
-          <span id="popupStatusText">Idle</span>
+    /* Scrollbar styling */
+    .sessions-list-wrapper::-webkit-scrollbar {
+      width: 7px;
+    }
+
+    .sessions-list-wrapper::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .sessions-list-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.9);
+      border-radius: 999px;
+    }
+
+    .sessions-list-wrapper::-webkit-scrollbar-thumb:hover {
+      background: rgba(71, 85, 105, 0.9);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="panel">
+    <div class="panel-header">
+      <div class="title-group">
+        <h3>
+          Research Session
+          <span class="pill">Tracker</span>
+        </h3>
+        <div class="subtitle" id="subtitle">
+          Start a topic to track all pages you open.
         </div>
       </div>
-
-      <div class="field-group">
-        <label for="topicInput">Topic name</label>
-        <input
-          id="topicInput"
-          placeholder="e.g. Source-free domain adaptation paper"
-        />
-      </div>
-
-      <div class="button-row">
-        <button id="startBtn" class="btn-primary">
-          <span class="btn-icon">▶️</span>
-          <span>Start session</span>
-        </button>
-        <button id="stopBtn" class="btn-ghost" disabled>
-          <span class="btn-icon">⏹</span>
-          <span>Stop</span>
-        </button>
-      </div>
-
-      <div class="button-row" style="margin-top: 2px">
-        <button id="openSidePanelBtn" class="btn-ghost">
-          <span class="btn-icon">📝</span>
-          <span>Open notes side panel</span>
-        </button>
-      </div>
-
-      <div class="section-title">Previous sessions</div>
-      <div class="sessions-list-wrapper">
-        <div id="sessionsList"></div>
-      </div>
-
-      <div class="panel-footer">
-        <div id="status">Ready.</div>
-        <div class="hint">Export from each session card.</div>
+      <div class="status-badge" id="popupStatusBadge">
+        <span class="status-dot" id="popupStatusDot"></span>
+        <span id="popupStatusText">Idle</span>
       </div>
     </div>
 
-    <script src="popup.js"></script>
-  </body>
+    <div class="field-group">
+      <label for="topicInput">Topic name</label>
+      <input id="topicInput" placeholder="e.g. Source-free domain adaptation paper" />
+    </div>
+
+    <div class="button-row">
+      <button id="startBtn" class="btn-primary">
+        <span class="btn-icon">▶️</span>
+        <span>Start session</span>
+      </button>
+      <button id="stopBtn" class="btn-ghost" disabled>
+        <span class="btn-icon">⏹</span>
+        <span>Stop</span>
+      </button>
+    </div>
+
+    <div class="button-row" style="margin-top: 2px">
+      <button id="openSidePanelBtn" class="btn-ghost">
+        <span class="btn-icon">📝</span>
+        <span>Open notes side panel</span>
+      </button>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+      <div class="section-title" style="margin-top: 0;">Previous sessions</div>
+      <button id="deleteAllBtn" class="btn-ghost" style="font-size: 10px; padding: 2px 6px; height: auto; flex: 0;">
+        🗑️ All
+      </button>
+    </div>
+    <div class="sessions-list-wrapper">
+      <div id="sessionsList"></div>
+    </div>
+
+    <div class="panel-footer">
+      <div id="status">Ready.</div>
+      <div class="hint">Export from each session card.</div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
 </html>
